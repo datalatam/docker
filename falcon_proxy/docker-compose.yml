@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  servicio:
+    image: falcon_api
+    ports:
+      - 5000
+    environment:
+      - SERVICE_PORTS=5000
+    deploy:
+      replicas: 10
+      update_config:
+        parallelism: 6 
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        window: 120s
+
+  proxy:
+    image: dockercloud/haproxy
+    depends_on:
+      - servicio
+    environment:
+      - BALANCE=leastconn
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 80:80
